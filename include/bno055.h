@@ -10,7 +10,7 @@
 // ================= KONFIGURASI =================
 // Set 'true' jika ingin kalibrasi ulang (Putar-putar sensor)
 // Set 'false' untuk pemakaian normal
-bool CALIBRATION_MODE = true; 
+bool CALIBRATION_MODE = false;
 
 // Deklarasi objek BNO
 // Menggunakan Wire default (SDA Pin 18, SCL Pin 19 pada Teensy 4.1)
@@ -74,6 +74,7 @@ void imu_hardware_init() {
 
        
       // Print status kalibrasi (0=Uncalibrated, 3=Fully Calibrated)
+      Serial.println("[MODE KALIB]");
       Serial.printf("accX: "); Serial.print(accel.x());
       Serial.printf("| accY: "); Serial.print(accel.y());
       Serial.printf("| accZ: "); Serial.print(accel.z());
