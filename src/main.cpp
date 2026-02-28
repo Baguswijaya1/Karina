@@ -102,11 +102,11 @@ void debug_data() {
     // USB.print(error_gyro_pitch);
     // USB.print("\tErr_Gyro_Yaw:");
     // USB.print(error_gyro_yaw);
-    USB.print("\tCh_Thr:");
-    USB.print(ch_throttle);
-    USB.print("\tIncomng_throttle:");
-    USB.print(raw_throttle);
-    USB.print("\tArming:");
+    // USB.print("\tCh_Thr:");
+    // USB.print(ch_throttle);
+    // USB.print("\tIncomng_throttle:");
+    // USB.print(raw_throttle);
+    // USB.print("\tArming:");
     USB.print(arming);
     // USB.print("\tMotor1_PWM:");
     // USB.print(motor1_pwm);
@@ -139,9 +139,9 @@ void setup() {
           Serial.println(addr, HEX);
         }
       }
-
+    Serial.println("initializing imu");
     imu_hardware_init();
-    remote_setup();
+    // remote_setup();
     // ekf_init();
     // uart_init();
     motor_init();
@@ -149,6 +149,7 @@ void setup() {
     // pinMode(LED, OUTPUT);
     // pinMode(LED_BUILTIN, OUTPUT);
     // digitalWrite(LED_BUILTIN, HIGH);
+    Serial.println("[SYSTEM READY]");
 }
 
 void loop() {
@@ -172,6 +173,7 @@ void loop() {
        writeMotors(1000, 1000, 1000, 1000);
        digitalWrite(LED_BUILTIN, LOW);
     }
+    debug_data();
 
 // //SLOWER LOOP WITH DELAY
 //   unsigned long currentMillis = millis();

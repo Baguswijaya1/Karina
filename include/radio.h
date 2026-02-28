@@ -28,6 +28,7 @@ void failsafe() {
 }
 
 void remote_setup() {
+    Serial.println("setting up remote");
     sbus_rx.Begin();
 
     while (!sbus_rx.Read()) {

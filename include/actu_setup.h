@@ -21,6 +21,7 @@ Servo motor1, motor2, motor3, motor4;
 extern bool arming;
 
 void motor_init() {
+    Serial.println("Initializing motors");
     motor1.attach(MOTOR1);
     motor2.attach(MOTOR2);
     motor3.attach(MOTOR3);
