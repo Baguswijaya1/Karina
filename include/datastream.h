@@ -78,14 +78,15 @@ void datastream_via_wire() {
     USB.println();
 }
 
-// void telemetry_data() {
-//     // TELEMETRY.println();
-//     TELEMETRY.print("Act_Roll:");
-//     TELEMETRY.print(actual_roll);
-//     TELEMETRY.print("\tAct_Pitch:");
-//     TELEMETRY.print(actual_pitch);
-//     TELEMETRY.print("\tAct_Yaw:");
-//     TELEMETRY.print(actual_yaw);
-// }
+void datastream_via_telem() {
+    // TELEMETRY.println();
+    TELEMETRY.print("Act_Roll:");
+    TELEMETRY.print(actual_roll);
+    TELEMETRY.print("\tAct_Pitch:");
+    TELEMETRY.print(actual_pitch);
+    TELEMETRY.print("\tAct_Yaw:");
+    TELEMETRY.print(actual_yaw);
+    TELEMETRY.println();
+}
 
 #endif
