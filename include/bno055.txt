@@ -58,6 +58,7 @@ void imu_hardware_init() {
   Wire.setClock(400000); 
   if (!bno.begin(OPERATION_MODE_NDOF)) { 
     Serial.println("BNO Error! Cek kabel (SDA=18, SCL=19)."); 
+    Serial2.println("BNO Error! Cek kabel (SDA=18, SCL=19)."); 
     while(1) {
        delay(100); // Stuck loop blink
     }
@@ -97,9 +98,9 @@ void imu_hardware_init() {
 
 void imu_hardware_read() {
   // Ambil Data Vector
-  imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-  imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
-  imu::Vector<3> mag = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+  imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE); // rad/s
+  imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER); // m/s
+  imu::Vector<3> mag = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER); // uT
 
   // KONVERSI PENTING UNTUK EKF:
   // // Gyro BNO055 defaultnya Degrees/s -> Harus diubah ke Radians/s
@@ -107,11 +108,10 @@ void imu_hardware_read() {
   // gyro_y = -gyro.x() * DEG_TO_RAD;
   // gyro_z = -gyro.z() * DEG_TO_RAD;
 
-  gyro_x = -gyro.y();
-  gyro_y = -gyro.x();
+  gyro_x = -gyro.x();
+  gyro_y = -gyro.y();
   gyro_z = -gyro.z();
 
-  // Accel m/s^2 (Sudah ok)
   accel_x = accel.y();
   accel_y = accel.x();
   accel_z = accel.z();
@@ -145,8 +145,9 @@ void imu_hardware_read() {
   mag_z = filt_mag_z;
 
   roll = 0.8*gyro_x + 0.2*accel_x;
-  pitch = 0.8*gyro_y + 0.2*accel_y;
-  yaw = 0.8*gyro_z + 0.2*accel_z;
+  // pitch = 0.8*gyro_y + 0.2*accel_y;
+  // yaw = 0.8*gyro_z + 0.2*accel_z;
 }
+
 
 #endif

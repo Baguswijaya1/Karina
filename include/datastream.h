@@ -6,10 +6,6 @@
 #define USB Serial
 #define TELEMETRY Serial2
 
-extern float actual_roll;
-extern float actual_pitch;
-extern float actual_yaw;
-
 void datastream_setup(){
     USB.begin(115200);
     TELEMETRY.begin(57600);
@@ -17,11 +13,11 @@ void datastream_setup(){
 
 void datastream_via_wire() {
     USB.print("Act_Roll:");
-    USB.print(actual_roll);
+    USB.print(roll);
     USB.print("\tAct_Pitch:");
-    USB.print(actual_pitch);
+    USB.print(pitch);
     USB.print("\tAct_Yaw:");
-    USB.print(actual_yaw);
+    USB.print(yaw);
     // USB.print("\tGyro_X:");
     // USB.print(gyro_x); 
     // USB.print("\tGyro_Y:");
@@ -62,16 +58,16 @@ void datastream_via_wire() {
     // USB.print(ch_throttle);
     // USB.print("\tIncomng_throttle:");
     // USB.print(raw_throttle);
-    // USB.print("\tArming:");
-    // USB.print(arming);
-    // USB.print("\tMotor1_PWM:");
-    // USB.print(motor1_pwm);
-    // USB.print("\tMotor2_PWM:");
-    // USB.print(motor2_pwm);
-    // USB.print("\tMotor3_PWM:");
-    // USB.print(motor3_pwm);
-    // USB.print("\tMotor4_PWM:");
-    // USB.print(motor4_pwm);
+    USB.print("\tArming:");
+    USB.print(arming);
+    USB.print("\tMotor1_PWM:");
+    USB.print(motor1_pwm);
+    USB.print("\tMotor2_PWM:");
+    USB.print(motor2_pwm);
+    USB.print("\tMotor3_PWM:");
+    USB.print(motor3_pwm);
+    USB.print("\tMotor4_PWM:");
+    USB.print(motor4_pwm);
 
     // USB.print("\tError_yaw:");
     // USB.print(error_yaw);
@@ -80,13 +76,15 @@ void datastream_via_wire() {
 
 void datastream_via_telem() {
     // TELEMETRY.println();
-    TELEMETRY.print("Act_Roll:");
-    TELEMETRY.print(actual_roll);
-    TELEMETRY.print("\tAct_Pitch:");
-    TELEMETRY.print(actual_pitch);
-    TELEMETRY.print("\tAct_Yaw:");
-    TELEMETRY.print(actual_yaw);
-    TELEMETRY.println();
+    TELEMETRY.print("Roll:"); TELEMETRY.print(roll);
+    TELEMETRY.print("| pitch:");TELEMETRY.print(pitch);
+    TELEMETRY.print("| yaw:"); TELEMETRY.print(yaw);
+
+    TELEMETRY.print("| Arming:"); TELEMETRY.print(arming);
+    TELEMETRY.print("| Motor1_PWM:"); TELEMETRY.print(motor1_pwm);
+    TELEMETRY.print("| Motor2_PWM:"); TELEMETRY.print(motor2_pwm);
+    TELEMETRY.print("| Motor3_PWM:"); TELEMETRY.print(motor3_pwm);
+    TELEMETRY.print("| Motor4_PWM:"); TELEMETRY.println(motor4_pwm);
 }
 
 #endif

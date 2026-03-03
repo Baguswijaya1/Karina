@@ -3,14 +3,24 @@
 
 #define MIN_PWM 1000
 #define MAX_PWM 1800
+#define MAX_ROLL 35.0f
+#define MAX_PITCH 35.0f
+#define MAX_YAW 25.0f
 
 #include <Arduino.h>
 #include <math.h>
+#include <radio.h>
 
-extern float actual_roll, actual_pitch, actual_yaw;
 extern float gyro_x, gyro_y, gyro_z;
 extern float gyro_x_control, gyro_y_control, gyro_z_control;
-extern float setpoint_roll, setpoint_pitch, setpoint_yaw;
+float altitude;
+float alt_last, alt_now, alt_vel;
+
+float setpoint_roll, setpoint_pitch, setpoint_yaw, target_alt;
+float setpoint_roll_last, setpoint_pitch_last, setpoint_yaw_last, target_alt_last;
+float setpoint_roll_now, setpoint_pitch_now, setpoint_yaw_now, target_alt_now;
+float setpoint_roll_rate, setpoint_pitch_rate, setpoint_yaw_rate;
+
 extern int16_t ch_throttle;
 extern float motor1_pwm, motor2_pwm, motor3_pwm, motor4_pwm;
 extern float u1, u2, u3, u4;
@@ -18,8 +28,10 @@ float motor_speed_squared[4];
 
 
 extern float error_roll, error_pitch, error_yaw;
-float error_gyro_roll, error_gyro_pitch, error_gyro_yaw;
+float error_roll_rate, error_pitch_rate, error_yaw_rate;
 float p_roll, d_roll, p_pitch, d_pitch, p_yaw, d_yaw;
+
+uint8_t t_now, t_last, dt;
 
 const double A_invers[4][4] = {{292600,  1300300,  1300300,  6283300},
                                {292600, -1300300,  1300300, -6283300},
@@ -36,31 +48,51 @@ struct Gains {
 } gain;
 
 void drone_controller(){
+  t_now = micros();
+  dt = t_now - t_last;
+  t_last = t_now;
 
-  actual_roll = roll * RAD_TO_DEG;
-  actual_pitch = pitch * RAD_TO_DEG;
-  actual_yaw = yaw * RAD_TO_DEG;
+    setpoint_roll_last = setpoint_roll_now;
+    setpoint_roll_now = setpoint_roll;
 
-  gyro_x_control = gyro_x * RAD_TO_DEG;
-  gyro_y_control = gyro_y * RAD_TO_DEG;
-  gyro_z_control = gyro_z * RAD_TO_DEG;
+    setpoint_pitch_last = setpoint_pitch_now;
+    setpoint_pitch_now = setpoint_pitch;
 
-  error_roll = actual_roll - setpoint_roll;
-  error_pitch = actual_pitch - setpoint_pitch;
-  error_yaw = actual_yaw - setpoint_yaw;
-  if (error_yaw > 180.0f) error_yaw -= 360.0f;
-  if (error_yaw < -180.0f) error_yaw += 360.0f;
-  error_gyro_roll = gyro_x_control;
-  error_gyro_pitch = gyro_y_control;
-  error_gyro_yaw = gyro_z_control;
+    setpoint_yaw_last = setpoint_yaw_now;
+    setpoint_yaw_now = setpoint_yaw;
 
+    if (dt > 0) {
+        setpoint_roll_rate = (setpoint_roll_now - setpoint_roll_last) / dt;
+        setpoint_pitch_rate = (setpoint_pitch_now - setpoint_pitch_last) / dt;
+        setpoint_yaw_rate = (setpoint_yaw_now - setpoint_yaw_last) / dt;
+    } else {
+        setpoint_roll_rate = 0.0f;
+        setpoint_pitch_rate = 0.0f;
+        setpoint_yaw_rate = 0.0f;
+    }
+
+    alt_last = alt_now;
+    alt_now = altitude;
+    alt_vel = (alt_now - alt_last) / dt;
+    
+  // proportional error
+  error_roll = roll - setpoint_roll;
+  error_pitch = pitch - setpoint_pitch;
+  error_yaw = yaw - setpoint_yaw;
+  // derivative error
+  error_roll_rate = -gyro_y; // x y dibalik
+  error_pitch_rate = gyro_x;
+  error_yaw_rate = gyro_z;
+
+  // u = -k * (state - setpoint)
   p_roll = -gain.roll * error_roll;
-  d_roll = -gain.p * error_gyro_roll;
+  d_roll = -gain.p * error_roll_rate;
   p_pitch = -gain.pitch * error_pitch;
-  d_pitch = -gain.q * error_gyro_pitch;
+  d_pitch = -gain.q * error_pitch_rate;
   p_yaw = -gain.yaw * error_yaw;
-  d_yaw = -gain.r * error_gyro_yaw;
+  d_yaw = -gain.r * error_yaw_rate;
 
+  // action vector
   u1 = 0.0f;
   u2 = (p_roll + d_roll)/10'000'000.0f;
   u3 = (p_pitch + d_pitch)/10'000'000.0f;
@@ -80,7 +112,15 @@ void drone_controller(){
   motor2_pwm = constrain(motor2_pwm, MIN_PWM, MAX_PWM);
   motor3_pwm = constrain(motor3_pwm, MIN_PWM, MAX_PWM);
   motor4_pwm = constrain(motor4_pwm, MIN_PWM, MAX_PWM);
+}
 
+void set_control_reference() {
+    setpoint_roll = roll_scaler() * MAX_ROLL;
+    setpoint_pitch = pitch_scaler() * MAX_PITCH;
+    setpoint_yaw = yaw_scaler() * MAX_YAW;
+    setpoint_yaw = yaw_sp;
+    if (setpoint_yaw > 180.0f) { setpoint_yaw -= 360.0f; }
+    if (setpoint_yaw < -180.0f) { setpoint_yaw += 360.0f; }
 }
 
 #endif
