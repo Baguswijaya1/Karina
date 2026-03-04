@@ -95,16 +95,6 @@ void drone_controller(){
   error_roll_rate = -gyro_y; // x y dibalik
   error_pitch_rate = gyro_x;
   error_yaw_rate = gyro_z;
-    // // cobacoba
-    // if (dt > 0){
-    //         error_roll_rate = (error_roll - prev_error_roll)/ dt;
-    //         error_pitch_rate = (error_pitch - prev_error_pitch)/ dt;
-    //         error_yaw_rate = (error_yaw - prev_error_yaw)/dt;
-    //     } else {
-    //         error_roll_rate = 0;
-    //         error_pitch_rate = 0;
-    //         error_yaw_rate = 0;
-    //     }
 
   // u = -k * (state - setpoint)
   p_roll = -gain.roll * error_roll;
