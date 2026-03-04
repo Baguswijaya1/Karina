@@ -30,6 +30,7 @@ float motor_speed_squared[4];
 extern float error_roll, error_pitch, error_yaw;
 float error_roll_rate, error_pitch_rate, error_yaw_rate;
 float p_roll, d_roll, p_pitch, d_pitch, p_yaw, d_yaw;
+float prev_error_roll, prev_error_pitch, prev_error_yaw;
 
 uint8_t t_now, t_last, dt;
 
@@ -38,20 +39,30 @@ const double A_invers[4][4] = {{292600,  1300300,  1300300,  6283300},
                                {292600, -1300300, -1300300,  6283300},
                                {292600,  1300300, -1300300, -6283300}};
 
+// tuning bang ikhlas
+// struct Gains {
+//     float roll = 5.477;//5.916; //5.477 (FINAL)
+//     float p = 3.027;//4.144; //3.027 (FINAL)
+//     float pitch = 5.196; //4.8 //2.1 //5.196 (FINAL)
+//     float q = 3.341; //1.05 //2.7 //max 1.7 dengan p 3.00 //1.3 oke //3.341 (FINAL)
+//     float yaw = 2.000; // 6.324
+//     float r = 1.079; // 1.160
+// } gain;
+
 struct Gains {
-    float roll = 5.477;//5.916; //5.477 (FINAL)
-    float p = 3.027;//4.144; //3.027 (FINAL)
-    float pitch = 5.196; //4.8 //2.1 //5.196 (FINAL)
-    float q = 3.341; //1.05 //2.7 //max 1.7 dengan p 3.00 //1.3 oke //3.341 (FINAL)
-    float yaw = 2.000; // 6.324
-    float r = 1.079; // 1.160
+    float roll = 5.477;
+    float p = 1.6;
+    float pitch = 5.5; // 5.5
+    float q = -1.6; // -1.6
+    float yaw = 2.000; 
+    float r = 1.079;
 } gain;
 
 void drone_controller(){
   t_now = micros();
   dt = t_now - t_last;
   t_last = t_now;
-
+    // derivative error properties
     setpoint_roll_last = setpoint_roll_now;
     setpoint_roll_now = setpoint_roll;
 
@@ -75,6 +86,7 @@ void drone_controller(){
     alt_now = altitude;
     alt_vel = (alt_now - alt_last) / dt;
     
+
   // proportional error
   error_roll = roll - setpoint_roll;
   error_pitch = pitch - setpoint_pitch;
@@ -83,6 +95,16 @@ void drone_controller(){
   error_roll_rate = -gyro_y; // x y dibalik
   error_pitch_rate = gyro_x;
   error_yaw_rate = gyro_z;
+    // // cobacoba
+    // if (dt > 0){
+    //         error_roll_rate = (error_roll - prev_error_roll)/ dt;
+    //         error_pitch_rate = (error_pitch - prev_error_pitch)/ dt;
+    //         error_yaw_rate = (error_yaw - prev_error_yaw)/dt;
+    //     } else {
+    //         error_roll_rate = 0;
+    //         error_pitch_rate = 0;
+    //         error_yaw_rate = 0;
+    //     }
 
   // u = -k * (state - setpoint)
   p_roll = -gain.roll * error_roll;
@@ -90,7 +112,7 @@ void drone_controller(){
   p_pitch = -gain.pitch * error_pitch;
   d_pitch = -gain.q * error_pitch_rate;
   p_yaw = -gain.yaw * error_yaw;
-  d_yaw = -gain.r * error_yaw_rate;
+  d_yaw = -gain.r * error_yaw_rate;     
 
   // action vector
   u1 = 0.0f;
@@ -98,10 +120,10 @@ void drone_controller(){
   u3 = (p_pitch + d_pitch)/10'000'000.0f;
   u4 = (p_yaw + d_yaw)/10'000'000.0f;
 
-  motor_speed_squared[0] = ((A_invers[0][0] * u1 + A_invers[0][1] * u2 + A_invers[0][2] * u3 + A_invers[0][3] * u4));
-  motor_speed_squared[1] = ((A_invers[1][0] * u1 + A_invers[1][1] * u2 + A_invers[1][2] * u3 + A_invers[1][3] * u4));
-  motor_speed_squared[2] = ((A_invers[2][0] * u1 + A_invers[2][1] * u2 + A_invers[2][2] * u3 + A_invers[2][3] * u4));
-  motor_speed_squared[3] = ((A_invers[3][0] * u1 + A_invers[3][1] * u2 + A_invers[3][2] * u3 + A_invers[3][3] * u4));
+  motor_speed_squared[0] = ((A_invers[0][0] * u1 + A_invers[0][1] * u2 + A_invers[0][2] * u3 + A_invers[0][3] * 0));
+  motor_speed_squared[1] = ((A_invers[1][0] * u1 + A_invers[1][1] * u2 + A_invers[1][2] * u3 + A_invers[1][3] * 0));
+  motor_speed_squared[2] = ((A_invers[2][0] * u1 + A_invers[2][1] * u2 + A_invers[2][2] * u3 + A_invers[2][3] * 0));
+  motor_speed_squared[3] = ((A_invers[3][0] * u1 + A_invers[3][1] * u2 + A_invers[3][2] * u3 + A_invers[3][3] * 0));
 
   motor1_pwm = ch_throttle + (int)(motor_speed_squared[0]);
   motor2_pwm = ch_throttle + (int)(motor_speed_squared[1]);

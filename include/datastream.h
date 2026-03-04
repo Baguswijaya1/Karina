@@ -2,6 +2,7 @@
 #define DATASTREAM
 
 #include<Arduino.h>
+#include "flight_controller.h"
 
 #define USB Serial
 #define TELEMETRY Serial2
@@ -81,10 +82,41 @@ void datastream_via_telem() {
     TELEMETRY.print("| yaw:"); TELEMETRY.print(yaw);
 
     TELEMETRY.print("| Arming:"); TELEMETRY.print(arming);
-    TELEMETRY.print("| Motor1_PWM:"); TELEMETRY.print(motor1_pwm);
-    TELEMETRY.print("| Motor2_PWM:"); TELEMETRY.print(motor2_pwm);
-    TELEMETRY.print("| Motor3_PWM:"); TELEMETRY.print(motor3_pwm);
-    TELEMETRY.print("| Motor4_PWM:"); TELEMETRY.println(motor4_pwm);
+    TELEMETRY.print("| M1:"); TELEMETRY.print(motor1_pwm);
+    TELEMETRY.print("| M2:"); TELEMETRY.print(motor2_pwm);
+    TELEMETRY.print("| M3:"); TELEMETRY.print(motor3_pwm);
+    TELEMETRY.print("| M4:"); TELEMETRY.print(motor4_pwm);
+
+    TELEMETRY.print("| Kp_roll: "); TELEMETRY.print(gain.roll);
+    TELEMETRY.print("| Kd_roll: "); TELEMETRY.print(gain.p);
+    TELEMETRY.print("| Kp_pitch: "); TELEMETRY.print(gain.pitch);
+    TELEMETRY.print("| Kd_pitch: "); TELEMETRY.println(gain.q);
+    
+}
+
+void tune_gain(){
+    while (Serial2.available()){
+        char selector = Serial2.read();
+        if (selector == '\r' || selector == '\n' || selector == ' ') continue;
+        if (true){
+            switch (selector)
+            {
+            case 'q': gain.roll += 0.1; break;
+            case 'a': gain.roll -= 0.1; break;
+            case 'w': gain.p += 0.1; break;
+            case 's': gain.p -= 0.1; break;
+            case 'e': gain.pitch += 0.1; break;
+            case 'd': gain.pitch -= 0.1; break;
+            case 'r': gain.q += 0.01; break;
+            case 'f': gain.q -= 0.01; break;
+            case 't': gain.yaw += 0.1; break;
+            case 'g': gain.yaw -= 0.1; break;
+            case 'y': gain.r += 0.1; break;
+            case 'h': gain.r -= 0.1; break;
+            default: break;
+            }
+        }
+    }
 }
 
 #endif

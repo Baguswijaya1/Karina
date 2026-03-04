@@ -74,6 +74,7 @@ void loop() {
     // uart_loop();
     set_control_reference();
     drone_controller();
+    tune_gain();
     if (arming) {
        writeMotors(motor1_pwm, motor2_pwm, motor3_pwm, motor4_pwm);
        digitalWrite(LED_BUILTIN, HIGH);

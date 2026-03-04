@@ -24,7 +24,9 @@ void failsafe() {
     ch_pitch = 1500;
     ch_throttle = 1000;
     ch_yaw = 1500;
-    arming = false;
+    // arming = false;
+    Serial2.println(
+        "FAILSAFE TRIGGERED\nFAILSAFE TRIGGERED\nFAILSAFE TRIGGERED\nFAILSAFE TRIGGERED\n");
 }
 
 void remote_setup() {
