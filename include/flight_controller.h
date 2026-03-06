@@ -57,7 +57,7 @@ struct Gains {
     float roll = 5.9; // 5.477     6.38
     float p = 2.0; // 1.6           2
     float pitch = 5.9; // 5.5       6.4
-    float q = -2.0; // -1.6         -2
+    float q = 2.0; // -1.6         -2
     float yaw = 0.8;                
     float r = 0.2;
 } gain;
@@ -97,8 +97,8 @@ void drone_controller(){
   error_yaw = yaw - setpoint_yaw;
   // derivative error
   error_roll_rate = -gyro_y; // x y dibalik
-  error_pitch_rate = gyro_x;
-  error_yaw_rate = gyro_z;
+  error_pitch_rate = -gyro_x;
+  error_yaw_rate = -gyro_z;
 
   // u = -k * (state - setpoint)
   p_roll = -gain.roll * error_roll;
@@ -139,17 +139,17 @@ float set_yaw(){
         Serial2.println("\nheading lock\n");
         return locked_yaw;
     } else if (!null_yaw && prev_null_yaw){
-        // exit heading lock
+        // exit heading lock, manual control
         prev_null_yaw = null_yaw;
         Serial2.println("\nyawing\n");
-        return yaw_scaler() * MAX_YAW;
+        return (yaw_scaler() * MAX_YAW) + yaw;
     } else if (null_yaw){
         // locked_yaw = yaw;
         prev_null_yaw = null_yaw;
         return locked_yaw;
     } else {
         // in manual control
-        return yaw_scaler() * MAX_YAW;
+        return (yaw_scaler() * MAX_YAW) + yaw;
     }
 }
 
