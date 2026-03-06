@@ -81,17 +81,20 @@ void datastream_via_telem() {
     TELEMETRY.print("| pitch:");TELEMETRY.print(pitch);
     TELEMETRY.print("| yaw:"); TELEMETRY.print(yaw);
 
-    TELEMETRY.print("| Arming:"); TELEMETRY.print(arming);
-    TELEMETRY.print("| M1:"); TELEMETRY.print(motor1_pwm);
-    TELEMETRY.print("| M2:"); TELEMETRY.print(motor2_pwm);
-    TELEMETRY.print("| M3:"); TELEMETRY.print(motor3_pwm);
-    TELEMETRY.print("| M4:"); TELEMETRY.print(motor4_pwm);
+    TELEMETRY.print("| Arm:"); TELEMETRY.print(arming);
+    // TELEMETRY.print("| M1:"); TELEMETRY.print(motor1_pwm);
+    // TELEMETRY.print("| M2:"); TELEMETRY.print(motor2_pwm);
+    // TELEMETRY.print("| M3:"); TELEMETRY.print(motor3_pwm);
+    // TELEMETRY.print("| M4:"); TELEMETRY.print(motor4_pwm);
 
-    TELEMETRY.print("| Kp_roll: "); TELEMETRY.print(gain.roll);
-    TELEMETRY.print("| Kd_roll: "); TELEMETRY.print(gain.p);
-    TELEMETRY.print("| Kp_pitch: "); TELEMETRY.print(gain.pitch);
-    TELEMETRY.print("| Kd_pitch: "); TELEMETRY.println(gain.q);
-    
+    TELEMETRY.print("| Proll: "); TELEMETRY.print(gain.roll);
+    TELEMETRY.print("| Droll: "); TELEMETRY.print(gain.p);
+    TELEMETRY.print("| Ppitch: "); TELEMETRY.print(gain.pitch);
+    TELEMETRY.print("| Dpitch: "); TELEMETRY.print(gain.q);
+
+    TELEMETRY.print("| Pyaw: "); TELEMETRY.print(gain.yaw);
+    TELEMETRY.print("| Dyaw: "); TELEMETRY.print(gain.r);
+    TELEMETRY.print("| yaw_sp: "); TELEMETRY.println(setpoint_yaw);
 }
 
 void tune_gain(){

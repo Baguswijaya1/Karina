@@ -32,6 +32,10 @@ float error_roll_rate, error_pitch_rate, error_yaw_rate;
 float p_roll, d_roll, p_pitch, d_pitch, p_yaw, d_yaw;
 float prev_error_roll, prev_error_pitch, prev_error_yaw;
 
+float locked_yaw = 0.0f;
+float null_yaw = false;
+float prev_null_yaw = false;
+
 uint8_t t_now, t_last, dt;
 
 const double A_invers[4][4] = {{292600,  1300300,  1300300,  6283300},
@@ -50,12 +54,12 @@ const double A_invers[4][4] = {{292600,  1300300,  1300300,  6283300},
 // } gain;
 
 struct Gains {
-    float roll = 5.477;
-    float p = 1.6;
-    float pitch = 5.5; // 5.5
-    float q = -1.6; // -1.6
-    float yaw = 2.000; 
-    float r = 1.079;
+    float roll = 5.9; // 5.477     6.38
+    float p = 2.0; // 1.6           2
+    float pitch = 5.9; // 5.5       6.4
+    float q = -2.0; // -1.6         -2
+    float yaw = 0.8;                
+    float r = 0.2;
 } gain;
 
 void drone_controller(){
@@ -110,10 +114,10 @@ void drone_controller(){
   u3 = (p_pitch + d_pitch)/10'000'000.0f;
   u4 = (p_yaw + d_yaw)/10'000'000.0f;
 
-  motor_speed_squared[0] = ((A_invers[0][0] * u1 + A_invers[0][1] * u2 + A_invers[0][2] * u3 + A_invers[0][3] * 0));
-  motor_speed_squared[1] = ((A_invers[1][0] * u1 + A_invers[1][1] * u2 + A_invers[1][2] * u3 + A_invers[1][3] * 0));
-  motor_speed_squared[2] = ((A_invers[2][0] * u1 + A_invers[2][1] * u2 + A_invers[2][2] * u3 + A_invers[2][3] * 0));
-  motor_speed_squared[3] = ((A_invers[3][0] * u1 + A_invers[3][1] * u2 + A_invers[3][2] * u3 + A_invers[3][3] * 0));
+  motor_speed_squared[0] = ((A_invers[0][0] * u1 + A_invers[0][1] * u2 + A_invers[0][2] * u3 + A_invers[0][3] * u4));
+  motor_speed_squared[1] = ((A_invers[1][0] * u1 + A_invers[1][1] * u2 + A_invers[1][2] * u3 + A_invers[1][3] * u4));
+  motor_speed_squared[2] = ((A_invers[2][0] * u1 + A_invers[2][1] * u2 + A_invers[2][2] * u3 + A_invers[2][3] * u4));
+  motor_speed_squared[3] = ((A_invers[3][0] * u1 + A_invers[3][1] * u2 + A_invers[3][2] * u3 + A_invers[3][3] * u4));
 
   motor1_pwm = ch_throttle + (int)(motor_speed_squared[0]);
   motor2_pwm = ch_throttle + (int)(motor_speed_squared[1]);
@@ -126,13 +130,47 @@ void drone_controller(){
   motor4_pwm = constrain(motor4_pwm, MIN_PWM, MAX_PWM);
 }
 
+float set_yaw(){
+    null_yaw = (ch_yaw >= 1450 && ch_yaw <= 1550);
+    if (null_yaw && !prev_null_yaw){
+        // enter heading lock
+        locked_yaw = yaw;
+        prev_null_yaw = null_yaw;
+        Serial2.println("\nheading lock\n");
+        return locked_yaw;
+    } else if (!null_yaw && prev_null_yaw){
+        // exit heading lock
+        prev_null_yaw = null_yaw;
+        Serial2.println("\nyawing\n");
+        return yaw_scaler() * MAX_YAW;
+    } else if (null_yaw){
+        // locked_yaw = yaw;
+        prev_null_yaw = null_yaw;
+        return locked_yaw;
+    } else {
+        // in manual control
+        return yaw_scaler() * MAX_YAW;
+    }
+}
+
 void set_control_reference() {
     setpoint_roll = roll_scaler() * MAX_ROLL;
     setpoint_pitch = pitch_scaler() * MAX_PITCH;
-    setpoint_yaw = yaw_scaler() * MAX_YAW;
-    setpoint_yaw = yaw_sp;
+    // setpoint_yaw = yaw_scaler() * MAX_YAW;
+    // setpoint_yaw = yaw_sp;
+    setpoint_yaw = set_yaw();
     if (setpoint_yaw > 180.0f) { setpoint_yaw -= 360.0f; }
     if (setpoint_yaw < -180.0f) { setpoint_yaw += 360.0f; }
 }
 
 #endif
+
+
+// Proll 6.38 
+// Droll 2 2.1
+
+// Ppitch 6.3 6.4
+// Dpitch -2 -1.84
+
+// Pyaw 1  0.5 0.7 0.8
+// Dyaw 0.2 0.3 0.2

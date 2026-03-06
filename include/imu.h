@@ -80,5 +80,6 @@ void imu_update(){
     yaw = 0.95 * last_yaw + 0.05 * yaw;
     last_yaw = yaw;
     
-    yaw_sp = yaw - last_yaw;
+    // // yaw_sp = yaw - last_yaw; // bikin salah jd 0 terus
+    // yaw_sp = yaw;
 }
