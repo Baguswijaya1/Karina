@@ -5,7 +5,7 @@
 #define MAX_PWM 1800
 #define MAX_ROLL 35.0f
 #define MAX_PITCH 35.0f
-#define MAX_YAW 25.0f
+#define MAX_YAW 35.0f
 
 #include <Arduino.h>
 #include <math.h>
@@ -58,8 +58,8 @@ struct Gains {
     float p = 2.0; // 1.6           2
     float pitch = 5.9; // 5.5       6.4
     float q = 2.0; // -1.6         -2
-    float yaw = 0.8;                
-    float r = 0.2;
+    float yaw = 1;                
+    float r = 0.1;
 } gain;
 
 void drone_controller(){
@@ -95,6 +95,9 @@ void drone_controller(){
   error_roll = roll - setpoint_roll;
   error_pitch = pitch - setpoint_pitch;
   error_yaw = yaw - setpoint_yaw;
+  if (error_yaw < -180) error_yaw += 360;
+  else if (error_yaw > 180) error_yaw -= 360;
+
   // derivative error
   error_roll_rate = -gyro_y; // x y dibalik
   error_pitch_rate = -gyro_x;
