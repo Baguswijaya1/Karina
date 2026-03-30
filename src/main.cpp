@@ -52,7 +52,7 @@ void setup() {
       }
     }
     imu_init();
-    remote_setup();
+    // remote_setup();
     motor_init();
     // motor_calibration();
     Serial.println("[SYSTEM READY]");
@@ -68,10 +68,6 @@ void loop() {
     previousMicros = currentMicros;
     imu_update();
     remote_loop();
-    // ekf_predict(dt);
-    // ekf_update();
-    // get_euler();
-    // uart_loop();
     set_control_reference();
     drone_controller();
     tune_gain();
@@ -86,9 +82,10 @@ void loop() {
 
   //SLOWER LOOP WITH DELAY
     unsigned long currentMillis = millis();
-    if (currentMillis - prevMillis >= 100) {
+    if (currentMillis - prevMillis >= 50) {
       prevMillis = currentMillis;
-      // datastream_via_wire();
+      datastream_via_wire();
       datastream_via_telem();
     }
+
 }
