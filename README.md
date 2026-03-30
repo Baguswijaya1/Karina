@@ -1,6 +1,6 @@
 # Petunjuk clone repo
-FC -> include, lib, src, test
-Raspi -> drone_ws
+- FC -> include, lib, src, test
+- Raspi -> drone_ws
 
 # Setup pin FC
 | Pin | Function     | Description |
