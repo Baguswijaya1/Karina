@@ -52,7 +52,7 @@ void setup() {
       }
     }
     imu_init();
-    // remote_setup();
+    remote_setup();
     motor_init();
     // motor_calibration();
     Serial.println("[SYSTEM READY]");

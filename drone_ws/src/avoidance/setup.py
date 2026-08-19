@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'obs_avoidance = avoidance.apf:main'
         ],
     },
 )
