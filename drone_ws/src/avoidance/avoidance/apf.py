@@ -48,16 +48,16 @@ class APF(Node):
     #     self.heading = msg.track
 
 
-    def get_lidar_data(self, msg):
-        self.lidar_range = msg.ranges
-        lidar_size = np.size(self.lidar_range)
-        self.lidar_angle = np.zeros(lidar_size)
-        for i in range(lidar_size):
-            self.lidar_angle[i] = i/(lidar_size/360)
+    # def get_lidar_data(self, msg):
+    #     self.lidar_range = msg.ranges
+    #     lidar_size = np.size(self.lidar_range)
+    #     self.lidar_angle = np.zeros(lidar_size)
+    #     for i in range(lidar_size):
+    #         self.lidar_angle[i] = i/(lidar_size/360)
 
-        self.lidar_data = np.column_stack((self.lidar_angle, self.lidar_range))
+    #     self.lidar_data = np.column_stack((self.lidar_angle, self.lidar_range))
 
-        self.get_logger().info(f'lidar_data: {self.lidar_data}')
+    #     self.get_logger().info(f'lidar_data: {self.lidar_data}')
         
 
     # def attractive_force(self):

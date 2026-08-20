@@ -24,7 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'obs_avoidance = avoidance.apf:main'
+            'lidar_perception = avoidance.perception:main'
         ],
     },
 )

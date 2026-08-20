@@ -15,11 +15,17 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(path_lidar)
     )
 
-    # avoidance
-    avoidance_launch = Node(
+    # # apf
+    # avoidance_launch = Node(
+    #     package='avoidance',
+    #     executable = 'obs_avoidance',
+    # )
+
+    # lidar perception
+    lidar_perception_launch = Node(
         package='avoidance',
-        executable = 'obs_avoidance',
+        executable= 'lidar_perception'
     )
 
-    node_list = [lidar_launch, avoidance_launch]
+    node_list = [lidar_launch, lidar_perception_launch]
     return LaunchDescription(node_list)
