@@ -20,10 +20,10 @@ bool alt_hold_mode = false;
 unsigned long arrival_time;
 
 void failsafe() {
-    ch_roll = 1500;
-    ch_pitch = 1500;
-    ch_throttle = 1000;
-    ch_yaw = 1500;
+    // ch_roll = 1500;
+    // ch_pitch = 1500;
+    // ch_throttle = 1000;
+    // ch_yaw = 1500;
     // arming = false;
     Serial2.println(
         "FAILSAFE TRIGGERED\nFAILSAFE TRIGGERED\nFAILSAFE TRIGGERED\nFAILSAFE TRIGGERED\n");
@@ -31,6 +31,7 @@ void failsafe() {
 
 void remote_setup() {
     Serial.println("setting up remote");
+    Serial2.println("waiting for remote");
     sbus_rx.Begin();
 
     while (!sbus_rx.Read()) {
@@ -153,7 +154,7 @@ float throttle_scaler() {
 }
 
 float pitch_scaler() {
-    return (ch_pitch - 1500) / 500.0f;
+    return -(ch_pitch - 1500) / 500.0f;
 }
 
 float yaw_scaler() {

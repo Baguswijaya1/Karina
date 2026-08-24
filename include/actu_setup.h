@@ -12,10 +12,10 @@
 #define min_yaw_corr -512//-517
 
 // ini udh bnr kl di frame gede, yg di comment hasil tracing pin pwm ke teensy
-#define MOTOR1 12
-#define MOTOR2 4 //10
-#define MOTOR3 6 //9
-#define MOTOR4 10 //6
+#define MOTOR1 11 // mot1
+#define MOTOR2 10 // m2
+#define MOTOR3 4 //m3
+#define MOTOR4 3 //m4
 
 Servo motor1, motor2, motor3, motor4;
 extern bool arming;
