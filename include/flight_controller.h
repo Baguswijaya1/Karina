@@ -23,7 +23,6 @@ float setpoint_roll_now, setpoint_pitch_now, setpoint_yaw_now, target_alt_now;
 float setpoint_roll_rate, setpoint_pitch_rate, setpoint_yaw_rate;
 float yaw_rate_sp = 0.0f;   // target yaw rate dari stick
 
-
 extern int16_t ch_throttle;
 extern float motor1_pwm, motor2_pwm, motor3_pwm, motor4_pwm;
 extern float u1, u2, u3, u4;
@@ -62,9 +61,9 @@ struct Gains {
     float p = 2.0; //2.482; // 1.6           2
     float pitch = 5.9; //5.291; // 5.5       6.4
     float q = 2.0; //2.676; // -1.6         -2
-    float yaw = 3.0; //3.0;                
+    float yaw = 3.1; //3.0;                
     float r = 1.0;//1.079;
-    float max_rate_y = 100.0f;  // tambahkan ini
+    float max_rate_y = 150.0f;  // tambahkan ini
     float iy = 0.0006; //trial
 } gain;
 

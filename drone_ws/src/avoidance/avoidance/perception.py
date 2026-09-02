@@ -16,6 +16,9 @@ class Perception(Node):
         self.range_min = 0
         self.range_max = 0
 
+        self.lidar_segment = 8
+        self.segment_min_range_index = [0, 0, 0, 0, 0, 0, 0, 0]
+
         self.rplidar_subs = self.create_subscription(
             msg_type=LaserScan,
             topic='/scan',
@@ -60,6 +63,18 @@ class Perception(Node):
         to_pub.angle_rad = angles_rad
         to_pub.range = ranges
         self.range_and_angle_pubs.publish(to_pub)
+
+        self.obs_detection(self, n, ranges)
+
+    def obs_detection(self, arraySize, ranges):
+        segment_array_size = arraySize // self.lidar_segment
+        for i in range(self.lidar_segment):
+            start = i * segment_array_size
+            end = start + segment_array_size if i < self.lidar_segment - 1 else arraySize
+            segment = ranges[start:end]
+            self.segment_min_range_index[i] = start + np.argmin(segment)
+
+
 
 def main(args=None):
     rclpy.init(args=args)

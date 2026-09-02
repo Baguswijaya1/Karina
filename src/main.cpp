@@ -6,6 +6,7 @@
 #include <flight_controller.h>
 #include <radio.h>
 #include<datastream.h>
+#include<mavlink_interface.h>
 
 // #define USB Serial
 // #define UART Serial1
@@ -87,5 +88,5 @@ void loop() {
       datastream_via_wire();
       datastream_via_telem();
     }
-
+  send_mavlink_msg();
 }
