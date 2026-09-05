@@ -16,9 +16,15 @@ static const uint8_t VEHICLE_TYPE = MAV_TYPE_QUADROTOR;
 
 static const unsigned long HEARTBEAT_INTERVAL_MS = 1000; // wajib ~1 Hz
 static const unsigned long ATTITUDE_INTERVAL_MS  = 100;  // 10 Hz
+static const unsigned long ALTITUDE_INTERVAL_MS = 100;
+unsigned long last_altitude_ms = 0;
+
+static const unsigned long RANGEFINDER_INTERVAL_MS = 50; // 20 Hz
+unsigned long last_rangefinder_ms = 0;
 
 extern bool arming;
 extern float roll, pitch, yaw;
+extern int16_t alt;
 
 
 // STATE DATA (isi ini dari kode flight-control-mu yang sebenarnya)
@@ -30,6 +36,7 @@ struct FlightData {
   float rollspeed  = 0.0f; // rad/s (opsional, boleh 0 kalau belum ada)
   float pitchspeed = 0.0f;
   float yawspeed   = 0.0f;
+  float rangefinder_distance_m = 0.0f;
 };
 
 FlightData flight_data;
@@ -88,6 +95,50 @@ void send_attitude() {
   mavlink_send(&msg);
 }
 
+void send_rangefinder() {
+  mavlink_message_t msg;
+
+  uint16_t current_distance_cm = (uint16_t)(flight_data.rangefinder_distance_m * 100.0f);
+
+  const float quaternion[4] = {0, 0, 0, 0}; // 0 = tidak dipakai (orientasi bukan CUSTOM)
+
+  mavlink_msg_distance_sensor_pack(
+    MAVLINK_SYSTEM_ID, MAVLINK_COMPONENT_ID, &msg,
+    millis(),                        // time_boot_ms
+    5,                                // min_distance (cm) - sesuaikan datasheet sensormu
+    4000,                             // max_distance (cm) - sesuaikan datasheet sensormu
+    current_distance_cm,              // current_distance (cm)
+    MAV_DISTANCE_SENSOR_LASER,        // type: ganti sesuai jenis sensor (lihat catatan di bawah)
+    0,                                 // id: 0 kalau cuma satu sensor
+    MAV_SENSOR_ROTATION_PITCH_270,    // orientation: 270 = menghadap ke bawah (umum untuk altitude hold)
+    255,                               // covariance: 255 = UINT8_MAX = tidak diketahui
+    0.0f,                              // horizontal_fov: 0 kalau tidak diketahui
+    0.0f,                              // vertical_fov: 0 kalau tidak diketahui
+    quaternion,
+    0                                  // signal_quality: 0 = unknown/unset
+  );
+
+  mavlink_send(&msg);
+}
+
+// // send altitude
+// void send_altitude() {
+//   mavlink_message_t msg;
+
+//   mavlink_msg_altitude_pack(
+//     MAVLINK_SYSTEM_ID, MAVLINK_COMPONENT_ID, &msg,
+//     (uint64_t)millis() * 1000ULL,   // time_usec — boleh pakai waktu sejak boot
+//     NAN,                             // altitude_monotonic — nggak dipakai
+//     NAN,                             // altitude_amsl — isi kalau ada data GPS MSL
+//     NAN,                             // altitude_local
+//     flight_data.altitude_relative,   // altitude_relative — ini yang biasanya ditampilkan QGC
+//     NAN,                             // altitude_terrain
+//     NAN                              // bottom_clearance
+//   );
+
+//   mavlink_send(&msg);
+// }
+
 // ---------------------------------------------------------------------
 // ==== FUTURE: PARAMETER PROTOCOL (PID gain) ====
 // Nanti tinggal:
@@ -138,6 +189,7 @@ void send_mavlink_msg(){
     flight_data.roll  = degtoRad(roll);
     flight_data.pitch = degtoRad(pitch);
     flight_data.yaw   = degtoRad(yaw);
+    flight_data.rangefinder_distance_m = alt;
     if (now - last_heartbeat_ms >= HEARTBEAT_INTERVAL_MS) {
       last_heartbeat_ms = now;
       send_heartbeat();
@@ -145,6 +197,19 @@ void send_mavlink_msg(){
     if (now - last_attitude_ms >= ATTITUDE_INTERVAL_MS) {
       last_attitude_ms = now;
       send_attitude();
+
+      if (now - last_rangefinder_ms >= RANGEFINDER_INTERVAL_MS) {
+        send_rangefinder();
+        last_rangefinder_ms = now;
+      }
     }   
+
+    // // di dalam send_mavlink_msg():
+    // if (now - last_altitude_ms >= ALTITUDE_INTERVAL_MS) {
+    //   last_altitude_ms = now;
+    //   send_altitude();
+    // }
+
+    
     process_mavlink_input(); // baca pesan masuk dari QGC (penting untuk tahap PID nanti)
 }

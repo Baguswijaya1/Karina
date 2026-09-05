@@ -53,6 +53,7 @@ void setup() {
       }
     }
     imu_init();
+    lidar_init();
     remote_setup();
     motor_init();
     // motor_calibration();
@@ -68,6 +69,7 @@ void loop() {
     // float dt = (currentMicros - previousMicros) / 1e6f;
     previousMicros = currentMicros;
     imu_update();
+    read_lidar();
     remote_loop();
     set_control_reference();
     drone_controller();

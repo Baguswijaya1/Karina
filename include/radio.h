@@ -7,15 +7,20 @@
 #define THROTTLE_SAFETY_THRESHOLD 1100 // Batas aman throttle (sedikit di atas 1000)
 #define LED_INDICATOR_PIN 2
 
+#define FMODE_LIMIT1 1300
+#define FMODE_LIMIT2 1600
+
 bfs::SbusRx sbus_rx(&Serial8);
 
 bfs::SbusData data;
 
-int16_t ch_roll, ch_pitch, ch_throttle, ch_yaw;
+int16_t ch_roll, ch_pitch, ch_throttle, ch_yaw, ch_fmode;
 
 bool signal_lost = false;
 extern bool arming;
 bool alt_hold_mode = false;
+
+bool flight_mode[3] = {0,0,0};
 
 unsigned long arrival_time;
 
@@ -108,11 +113,18 @@ void remote_loop() {
     ch_pitch = data.ch[1] * 0.611f + 895;
     ch_throttle = data.ch[2] * 0.611f + 895;
     ch_yaw = data.ch[3] * 0.611f + 895;
+    ch_fmode = data.ch[6] * 0.611f + 895;
 
     ch_roll = constrain(ch_roll, 1000, 2000);
     ch_pitch = constrain(ch_pitch, 1000, 2000);
     ch_throttle = constrain(ch_throttle, 1000, 2000);
     ch_yaw = constrain(ch_yaw, 1000, 2000);
+    ch_fmode = constrain(ch_fmode, 1000, 2000);
+
+    flight_mode[0] = ch_fmode <= FMODE_LIMIT1; // stablize
+    flight_mode[1] = ch_fmode > FMODE_LIMIT1; // althold
+    // flight_mode[2] = ch_fmode > FMODE_LIMIT2; // poshold
+
 
     bool switch_arm_position = data.ch[4] > 1500; // Cek posisi switch fisik
     
@@ -140,7 +152,6 @@ void remote_loop() {
     if (arming) { digitalWrite(LED_INDICATOR_PIN, HIGH); }
     else { digitalWrite(LED_INDICATOR_PIN, LOW); }
     
-    // alt_hold_mode = data.ch[5] > 1500 ? true : false;
   }
 }
 
@@ -150,7 +161,7 @@ float roll_scaler() {
 }
 
 float throttle_scaler() {
-    return (ch_throttle - 1000) / 1000.0f;
+    return (ch_throttle - 1500) / 500.0f;
 }
 
 float pitch_scaler() {

@@ -3,6 +3,7 @@
 
 #include<Arduino.h>
 #include "flight_controller.h"
+#include <sensors.h>
 
 #define USB Serial
 #define TELEMETRY Serial2
@@ -16,7 +17,9 @@ void datastream_via_wire() {
     USB.print(roll); USB.print(",");
     USB.print(pitch); USB.print(",");
     USB.print(yaw); USB.print(",");
-    USB.print(arming);
+    USB.print(arming); USB.print(",");
+    USB.print(alt); USB.print(",");
+    USB.print(flight_mode[2]);USB.print(flight_mode[1]);USB.println(flight_mode[0]);
     // USB.print("| M1:"); USB.print(motor1_pwm);
     // USB.print("| M2:"); USB.print(motor2_pwm);
     // USB.print("| M3:"); USB.print(motor3_pwm);
@@ -29,15 +32,18 @@ void datastream_via_wire() {
 
 void datastream_via_telem() {
     // TELEMETRY.println();
-    TELEMETRY.print("Roll:"); TELEMETRY.print(roll);
-    TELEMETRY.print("| pitch:");TELEMETRY.print(pitch);
-    TELEMETRY.print("| yaw:"); TELEMETRY.print(yaw);
+    // TELEMETRY.print("Roll:"); TELEMETRY.print(roll);
+    // TELEMETRY.print("| pitch:");TELEMETRY.print(pitch);
+    // TELEMETRY.print("| yaw:"); TELEMETRY.print(yaw);
 
     TELEMETRY.print("| Arm:"); TELEMETRY.print(arming);
-    TELEMETRY.print("| M1:"); TELEMETRY.print(motor1_pwm);
-    TELEMETRY.print("| M2:"); TELEMETRY.print(motor2_pwm);
-    TELEMETRY.print("| M3:"); TELEMETRY.print(motor3_pwm);
-    TELEMETRY.print("| M4:"); TELEMETRY.print(motor4_pwm);
+    TELEMETRY.print("| altsp: "); TELEMETRY.print(setpoint_alt);
+    TELEMETRY.print("| alt: "); TELEMETRY.print(alt);
+
+    // TELEMETRY.print("| M1:"); TELEMETRY.print(motor1_pwm);
+    // TELEMETRY.print("| M2:"); TELEMETRY.print(motor2_pwm);
+    // TELEMETRY.print("| M3:"); TELEMETRY.print(motor3_pwm);
+    // TELEMETRY.print("| M4:"); TELEMETRY.print(motor4_pwm);
 
     // TELEMETRY.print("| Proll: "); TELEMETRY.print(gain.roll);
     // TELEMETRY.print("| Droll: "); TELEMETRY.print(gain.p);
@@ -48,10 +54,11 @@ void datastream_via_telem() {
     // TELEMETRY.print("| Dyaw: "); TELEMETRY.print(gain.r);
     // TELEMETRY.print("| yaw_sp: "); TELEMETRY.println(setpoint_yaw);
 
-    TELEMETRY.print("| yawsp: "); TELEMETRY.print(setpoint_yaw);    
-    TELEMETRY.print("| yawact "); TELEMETRY.print(yaw);
-    TELEMETRY.print("| yrsp: "); TELEMETRY.print(yaw_rate_sp);    
-    TELEMETRY.print("| yract: "); TELEMETRY.println(-gyro_z);
+    // TELEMETRY.print("| yawsp: "); TELEMETRY.print(setpoint_yaw);    
+    // TELEMETRY.print("| yawact "); TELEMETRY.print(yaw);
+    // TELEMETRY.print("| yrsp: "); TELEMETRY.print(yaw_rate_sp);    
+    // TELEMETRY.print("| yract: "); TELEMETRY.print(-gyro_z);
+    TELEMETRY.print(" | fmode: "); TELEMETRY.print(flight_mode[2]); TELEMETRY.print(flight_mode[1]); TELEMETRY.println(flight_mode[0]);    
 }
 
 void tune_gain(){

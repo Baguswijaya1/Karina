@@ -7,14 +7,16 @@
 #define MAX_PITCH 35.0f
 #define MAX_YAW 35.0f
 #define YAW_RATE_DEADBAND 50
+#define MAX_VEL_Z 20
 
 #include <Arduino.h>
 #include <math.h>
 #include <radio.h>
+#include <sensors.h>
 
 extern float gyro_x, gyro_y, gyro_z;
 extern float gyro_x_control, gyro_y_control, gyro_z_control;
-float altitude;
+extern int16_t alt;
 float alt_last, alt_now, alt_vel;
 
 float setpoint_roll, setpoint_pitch, setpoint_yaw, target_alt;
@@ -26,6 +28,7 @@ float yaw_rate_sp = 0.0f;   // target yaw rate dari stick
 extern int16_t ch_throttle;
 extern float motor1_pwm, motor2_pwm, motor3_pwm, motor4_pwm;
 extern float u1, u2, u3, u4;
+extern bool flight_mode[3];
 float motor_speed_squared[4];
 
 
@@ -37,6 +40,10 @@ float prev_error_roll, prev_error_pitch, prev_error_yaw;
 float locked_yaw = 0.0f;
 float null_yaw = false;
 float prev_null_yaw = false;
+
+float setpoint_alt = 0.0f;
+float null_alt = false;
+float prev_null_alt = false;
 
 uint8_t t_now, t_last, dt;
 
@@ -65,6 +72,7 @@ struct Gains {
     float r = 1.0;//1.079;
     float max_rate_y = 150.0f;  // tambahkan ini
     float iy = 0.0006; //trial
+    float kp_alt = 1.0;
 } gain;
 
 float set_yaw(){
@@ -119,10 +127,38 @@ void set_control_reference() {
     yaw_compute();
 }
 
+float alt_control(float altitude){   
+    null_alt = (ch_throttle > 1600 && ch_yaw < 1400);
+    if (null_alt && !prev_null_alt){
+        // enter alt hold
+        setpoint_alt = altitude;
+    } else if (!null_alt && prev_null_alt){
+        // exit alt hold, manual control
+        setpoint_alt = altitude + throttle_scaler()*MAX_VEL_Z;
+    } else if (!null_alt){
+        setpoint_alt = altitude + throttle_scaler()*MAX_VEL_Z;
+    }
+    prev_null_alt = null_alt;
+    return gain.kp_alt*(altitude - setpoint_alt)/10'000'000.0f;
+}
+
+float throttle_control(float altitude){
+    if (flight_mode[0]){
+        return 0.0f;
+    }
+    else if (flight_mode[1]){
+        if (lidar_data_valid){
+            return alt_control(altitude);
+        }
+        
+    }
+    return 0.0f;
+}
+
 void drone_controller(){
-  t_now = micros();
-  dt = t_now - t_last;
-  t_last = t_now;
+    t_now = micros();
+    dt = t_now - t_last;
+    t_last = t_now;
     // derivative error properties
     setpoint_roll_last = setpoint_roll_now;
     setpoint_roll_now = setpoint_roll;
@@ -142,26 +178,21 @@ void drone_controller(){
         setpoint_roll_rate = 0.0f;
         setpoint_pitch_rate = 0.0f;
         setpoint_yaw_rate = 0.0f;
-    }
+    }    
 
-    alt_last = alt_now;
-    alt_now = altitude;
-    alt_vel = (alt_now - alt_last) / dt;
-    
-
-  // proportional error
+    // proportional error
     error_roll = roll - setpoint_roll;
     error_pitch = pitch - setpoint_pitch;
     error_yaw = yaw - setpoint_yaw;
     if (error_yaw < -180) error_yaw += 360;
     if (error_yaw > 180) error_yaw -= 360;    
 
-  // derivative error
+    // derivative error
     error_roll_rate = -gyro_y; // x y dibalik
     error_pitch_rate = -gyro_x;
     // error yaw rate sdh dihitung di yaw_compute
 
-  // u = -k * (state - setpoint)
+    // u = -k * (state - setpoint)
     p_roll = -gain.roll * error_roll;
     d_roll = -gain.p * error_roll_rate;
     p_pitch = -gain.pitch * error_pitch;
@@ -169,12 +200,11 @@ void drone_controller(){
     p_yaw = -gain.yaw * error_yaw;       
     d_yaw = -gain.r   * error_yaw_rate;    
 
-  // action vector
-    u1 = 0.0f;
+    // action vector
+    u1 = throttle_control(alt);
     u2 = (p_roll + d_roll)/10'000'000.0f;
     u3 = (p_pitch + d_pitch)/10'000'000.0f;
     u4 = (p_yaw + d_yaw)/10'000'000.0f;
-    // u4 = 0; // abaikan yaw
 
     motor_speed_squared[0] = ((A_invers[0][0] * u1 + A_invers[0][1] * u2 + A_invers[0][2] * u3 + A_invers[0][3] * u4));
     motor_speed_squared[1] = ((A_invers[1][0] * u1 + A_invers[1][1] * u2 + A_invers[1][2] * u3 + A_invers[1][3] * u4));
